@@ -123,6 +123,7 @@
   function setTeamControls(on) {
     $('copy').disabled = !on;
     $('share').disabled = !on;
+    $('clear').disabled = !on;
     $('paste').closest('details').hidden = !on;
   }
 
@@ -153,6 +154,13 @@
     render();
   }
 
+  function clearTeam() {
+    team = [];
+    locks = locks.map(() => false);
+    history.replaceState(null, '', location.pathname);
+    renderEmpty();
+  }
+
   // ---------- UI wiring ----------
   function toast(msg) {
     const t = $('toast');
@@ -169,6 +177,7 @@
   $('generate').addEventListener('click', generate);
   $('copy').addEventListener('click', () => copy($('paste').value, 'Paste copied'));
   $('share').addEventListener('click', () => copy(location.href, 'Share link copied'));
+  $('clear').addEventListener('click', clearTeam);
   $('team').addEventListener('click', e => {
     const b = e.target.closest('button[data-act]');
     if (!b) return;
