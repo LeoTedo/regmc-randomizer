@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reg M-C Randomizer</title>
+  <meta name="description" content="Generate a random, fully legal Pokémon Champions team for VGC Regulation Set M-C.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23fff' stroke='%23222' stroke-width='8'/><path d='M4 50a46 46 0 0 1 92 0z' fill='%23e3350d' stroke='%23222' stroke-width='8'/><circle cx='50' cy='50' r='13' fill='%23fff' stroke='%23222' stroke-width='8'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="ball" aria-hidden="true"></span>
+      <div>
+        <h1>Reg M-C Randomizer</h1>
+        <p class="sub">Six random, fully legal Pokémon Champions sets for VGC Regulation Set M-C</p>
+      </div>
+    </div>
+    <button id="generate" class="primary">Generate team</button>
+  </header>
+
+  <section class="controls" aria-label="Options">
+    <label>Mega Stones
+      <select id="megaBias">
+        <option value="0">Pure random</option>
+        <option value="0.5">Sometimes</option>
+        <option value="1">Always (if possible)</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="oneMega"> Max one Mega Stone</label>
+    <label>Training
+      <select id="spStyle">
+        <option value="chaos">Chaotic spread</option>
+        <option value="focused">Focused (32 / 32 / 2)</option>
+      </select>
+    </label>
+    <div class="spacer"></div>
+    <button id="copy" class="ghost">Copy Showdown paste</button>
+    <button id="share" class="ghost">Copy share link</button>
+  </section>
+
+  <main id="team" class="team" aria-live="polite"></main>
+
+  <details class="paste-wrap">
+    <summary>Showdown / Champions paste</summary>
+    <textarea id="paste" readonly spellcheck="false"></textarea>
+  </details>
+
+  <footer>
+    <p>
+      Level 50 · 66 Stat Points (max 32 per stat) · Species Clause · Item Clause · one Mega Evolution per battle.
+      Legality data extracted from <a href="https://github.com/smogon/pokemon-showdown/tree/master/data/mods/champions">Pokémon Showdown's Champions mod</a>
+      (<span id="meta"></span>) and checked against its <code>[Gen 9 Champions] VGC 2026 Reg M-C</code> validator.
+    </p>
+    <p class="fine">Fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company. Sprites from Pokémon Showdown.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="data.js"></script>
+  <script src="generator.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
