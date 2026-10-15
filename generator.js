@@ -92,11 +92,50 @@
     return team;
   }
 
+  // Type a move actually has when used by a holder of `ability` (Pixilate, Liquid Voice, ...).
+  function moveType(data, moveId, ability) {
+    const mv = data.moves[moveId];
+    const ch = data.typeChangers[ability];
+    if (ch && (ch.sound ? mv.snd : !ch.from || mv.t === ch.from)) return ch.to;
+    return mv.t;
+  }
+
+  function effectiveness(data, atk, defTypes) {
+    return defTypes.reduce((x, t) => x * data.typeChart[atk][t], 1);
+  }
+
+  // Every typing the Pokémon can have in battle: its own, plus each move's type with Protean/Libero.
+  function possibleTypings(data, sp, ability, moves) {
+    const typings = [sp.types];
+    if (ability === 'Protean' || ability === 'Libero') {
+      for (const m of moves) typings.push([moveType(data, m, ability)]);
+    }
+    return typings;
+  }
+
+  // Type-boosting items need a damaging move of that type; resist berries need a weakness to it
+  // (Chilan Berry halves any Normal hit, so it only needs the holder to be hittable by Normal).
+  function itemFits(data, itemId, sp, ability, moves) {
+    const boost = data.boostItems[itemId];
+    if (boost) return moves.some(m => data.moves[m].c !== 'X' && moveType(data, m, ability) === boost);
+    const resist = data.resistBerries[itemId];
+    if (resist) {
+      if (data.abilityImmunities[ability] === resist) return false;
+      const minMult = resist === 'Normal' ? 0 : 1;
+      return possibleTypings(data, sp, ability, moves).some(t => effectiveness(data, resist, t) > minMult);
+    }
+    return true;
+  }
+
   function buildMon(data, sp, r, opts, usedItems, megaCount) {
+    // Ability and moves come first: whether an item is useful depends on them
+    const ability = pick(r, sp.abilities);
+    const moves = sample(r, sp.moves, Math.min(4, sp.moves.length));
+
     // Item Clause: no duplicate items on a team
     const megaAllowed = !(opts.oneMega && megaCount >= 1);
     const stones = megaAllowed ? sp.megas.filter(m => !usedItems.has(m.item)) : [];
-    const generic = data.genericItems.filter(i => !usedItems.has(i));
+    const generic = data.genericItems.filter(i => !usedItems.has(i) && itemFits(data, i, sp, ability, moves));
     let item, mega = null;
     if (stones.length && opts.megaBias > 0 && r() < opts.megaBias) {
       mega = pick(r, stones);
@@ -113,11 +152,11 @@
     return {
       id: sp.id, name: sp.name, num: sp.num,
       gender: sp.genders.length ? pick(r, sp.genders) : '',
-      ability: pick(r, sp.abilities),
+      ability,
       item, mega,
       nature: nature.n,
       evs,
-      moves: sample(r, sp.moves, Math.min(4, sp.moves.length)),
+      moves,
       stats: calcStats(sp.stats, evs, nature),
     };
   }
@@ -136,7 +175,7 @@
     }).join('\n\n');
   }
 
-  const api = { STATS, STAT_LABEL, rng, generateTeam, buildMon, calcStats, toShowdown };
+  const api = { STATS, STAT_LABEL, rng, generateTeam, buildMon, calcStats, toShowdown, itemFits, moveType };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TeamGen = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -70,6 +70,7 @@ const moveData = {};
 for (const id of [...usedMoves].sort()) {
   const m = dex.moves.get(id);
   moveData[id] = {n: m.name, t: m.type, c: m.category === 'Status' ? 'X' : m.category[0], p: m.basePower, a: m.accuracy === true ? 0 : m.accuracy, pp: m.pp, d: desc('Moves', m.id)};
+  if (m.flags.sound) moveData[id].snd = 1;
 }
 const itemData = {};
 for (const i of items) itemData[i.id] = {n: i.name, s: i.spritenum, d: desc('Items', i.id), mega: !!i.megaStone};
@@ -77,16 +78,52 @@ const abilData = {};
 for (const s of species) for (const a of [...s.abilities, ...s.megas.map(m => m.ability)]) {
   const ab = dex.abilities.get(a); abilData[ab.name] = desc('Abilities', ab.id);
 }
+// --- item rules -------------------------------------------------------------
+// Type-boosting items (Charcoal, Mystic Water, ..., Normal Gem) and type-resist berries
+// (Occa, Passho, ..., Chilan), read from Showdown's item handlers.
+const typeOf = fn => { const m = String(fn || '').match(/move\.type === ["'](\w+)["']/); return m && m[1]; };
+const boostItems = {}, resistBerries = {};
+for (const i of genericItems) {
+  if (i.isGem) boostItems[i.id] = i.name.replace(/ Gem$/, '');
+  else if (typeOf(i.onBasePower)) boostItems[i.id] = typeOf(i.onBasePower);
+  else if (i.isBerry && typeOf(i.onSourceModifyDamage)) resistBerries[i.id] = typeOf(i.onSourceModifyDamage);
+}
+// Abilities that make the holder immune to a type (Levitate is special-cased in Showdown's engine).
+const abilityImmunities = {Levitate: 'Ground'};
+for (const a of Object.keys(abilData)) {
+  const t = typeOf(dex.abilities.get(a).onTryHit);
+  if (t) abilityImmunities[a] = t;
+}
+// Abilities that change the type of the holder's moves.
+const typeChangers = {
+  Aerilate: {from: 'Normal', to: 'Flying'}, Galvanize: {from: 'Normal', to: 'Electric'},
+  Pixilate: {from: 'Normal', to: 'Fairy'}, Refrigerate: {from: 'Normal', to: 'Ice'},
+  Dragonize: {from: 'Normal', to: 'Dragon'}, Normalize: {to: 'Normal'}, 'Liquid Voice': {sound: true, to: 'Water'},
+};
+for (const a in typeChangers) if (!abilData[a]) delete typeChangers[a];
+// Type chart: typeChart[attacking][defending] = multiplier
+const typeChart = {};
+for (const atk of dex.types.all()) {
+  if (atk.isNonstandard) continue;
+  typeChart[atk.name] = {};
+  for (const def of dex.types.all()) {
+    if (def.isNonstandard) continue;
+    typeChart[atk.name][def.name] = [1, 2, 0.5, 0][def.damageTaken[atk.name]];
+  }
+}
+
 const natures = dex.natures.all().map(n => ({n: n.name, plus: n.plus || null, minus: n.minus || null}));
 
 const data = {
   format: fmt.name, source: 'Pokémon Showdown (smogon/pokemon-showdown) champions mod',
   generated: new Date().toISOString().slice(0,10),
   species, moves: moveData, items: itemData, genericItems: genericItems.map(i => i.id), abilities: abilData, natures,
+  boostItems, resistBerries, abilityImmunities, typeChangers, typeChart,
   rules: {level: 50, spTotal: 66, spMax: 32},
 };
 fs.writeFileSync(OUT, 'window.REG_MC = ' + JSON.stringify(data) + ';\n');
 console.log('species', species.length, 'moves', Object.keys(moveData).length, 'items', items.length,
   'generic', genericItems.length, 'mega-capable', species.filter(s => s.megas.length).length);
+console.log('boost', boostItems, 'resist', resistBerries, 'immune', abilityImmunities, 'changers', Object.keys(typeChangers));
 console.log(species.filter(s => s.moves.length < 4).map(s => s.name + ':' + s.moves.length));
 console.log(species.filter(s => s.abilities.length < Object.keys(dex.species.get(s.id).abilities).length).map(s=>s.name).slice(0,20));

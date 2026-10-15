@@ -6,7 +6,13 @@ A static website that generates a random, fully legal **Pokémon Champions** tea
 Every team gets:
 
 - **6 Pokémon** from the Reg M-C pool (269 species/forms; Species Clause enforced, so no Persian + Alolan Persian)
-- **A random held item**, with no repeats (Item Clause). Mega Stones only go to the Pokémon that can use them
+- **A random held item**, with no repeats (Item Clause). Mega Stones only go to the Pokémon that can use them.
+  Items are only handed out when they can actually do something:
+  - type-boosting items (Charcoal, Mystic Water, …, Normal Gem) need a damaging move of that type among the 4 moves,
+    counting type-changing abilities (Pixilate/Refrigerate make Normal moves Fairy/Ice, Liquid Voice makes sound moves Water)
+  - resist berries (Occa, Passho, …) need the Pokémon to be weak to that type, and not immune through its ability
+    (Levitate, Flash Fire, Water Absorb, …). Protean/Libero holders also count the types their moves can turn them into.
+    Chilan Berry halves any Normal hit, so it only needs the Pokémon to be hittable by Normal moves
 - **A random legal Ability**
 - **4 random legal moves** from that Pokémon's Champions learnset
 - **A random stat alignment** (Nature: ×1.1 / ×0.9)
@@ -20,7 +26,7 @@ and copy a Showdown paste.
 `data.js` is generated from [Pokémon Showdown](https://github.com/smogon/pokemon-showdown)'s
 `champions` mod, using its own `[Gen 9 Champions] VGC 2026 Reg M-C` validator to decide what is legal
 for each species, ability, move and item. `scripts/validate-teams.js` runs generated teams back through
-that validator.
+that validator and checks the item rules against Showdown's type chart.
 
 To refresh the data after a Showdown update (for example when the next regulation starts):
 
