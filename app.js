@@ -112,7 +112,22 @@
     </article>`;
   }
 
+  function renderEmpty() {
+    $('team').innerHTML = `<div class="empty">
+      <span class="ball big" aria-hidden="true"></span>
+      <p><b>No team yet.</b> Hit <i>Generate team</i> (or press <kbd>G</kbd>) to roll six random Reg M-C Pokémon.</p>
+    </div>`;
+    setTeamControls(false);
+  }
+
+  function setTeamControls(on) {
+    $('copy').disabled = !on;
+    $('share').disabled = !on;
+    $('paste').closest('details').hidden = !on;
+  }
+
   function render() {
+    setTeamControls(true);
     $('team').innerHTML = team.map(renderMon).join('');
     $('team').querySelectorAll('img[data-fallbacks]').forEach(img => {
       img.addEventListener('error', () => {
@@ -192,6 +207,6 @@
 
   const m = location.hash.match(/^#t=(.+)$/);
   if (m) {
-    try { team = decode(m[1]); render(); } catch { generate(); }
-  } else generate();
+    try { team = decode(m[1]); render(); } catch { history.replaceState(null, '', location.pathname); renderEmpty(); }
+  } else renderEmpty();
 })();

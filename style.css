@@ -134,6 +134,18 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .move b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .move small { opacity: .9; font-size: 11px; }
 
+.empty {
+  grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+  padding: 64px 16px; border: 2px dashed var(--line); border-radius: 16px; color: var(--muted);
+}
+.empty p { margin: 0; max-width: 420px; }
+.empty b { color: var(--ink); }
+.ball.big { width: 64px; height: 64px; opacity: .85; }
+.ball.big::after { width: 18px; height: 18px; }
+kbd { font: 600 12px ui-monospace, Menlo, monospace; padding: 1px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--chip); color: var(--ink); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:disabled:hover { border-color: var(--line); }
+
 .paste-wrap { margin-top: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
 .paste-wrap summary { cursor: pointer; font-weight: 600; }
 #paste {
